@@ -1,0 +1,132 @@
+name: BMAD Studio CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
+  VAULT_NAMESPACE: vault-system
+  DOCKER_REGISTRY: bmad-studio
+  K8S_CLUSTER: bmad-studio-cluster
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint code
+        run: npm run lint
+      
+      - name: Run unit tests
+        run: npm test
+
+  vault-secrets-sync:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install Vault CLI
+        run: |
+          wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | sudo tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+          sudo apt update && sudo apt install vault
+      
+      - name: Authenticate with Vault
+        run: |
+          vault login -method=github token=${{ secrets.VAULT_GITHUB_TOKEN }}
+          
+      - name: Sync Secrets to Vault
+        run: |
+          vault kv put secret/bmad-studio/environments/production \
+            DATABASE_URL=${{ secrets.DATABASE_URL }} \
+            API_KEY=${{ secrets.API_KEY }} \
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+
+  build-and-deploy:
+    needs: [lint-and-test, vault-secrets-sync]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/bmad-studio:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY }}/bmad-studio:latest
+      
+      - name: Setup Kubernetes Credentials
+        uses: azure/k8s-set-context@v2
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      
+      - name: Deploy to Kubernetes
+        run: |
+          # Retrieve secrets from Vault
+          export VAULT_TOKEN=$(vault login -method=github token=${{ secrets.VAULT_GITHUB_TOKEN }} -format=json | jq -r .auth.client_token)
+          
+          # Update Kubernetes deployment with new image and Vault-synced secrets
+          kubectl set image deployment/bmad-studio bmad-studio=${{ env.DOCKER_REGISTRY }}/bmad-studio:${{ github.sha }}
+          
+          # Restart deployment to apply new secrets
+          kubectl rollout restart deployment/bmad-studio
+      
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/bmad-studio
+          kubectl get pods -l app=bmad-studio
+
+  security-scan:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ env.DOCKER_REGISTRY }}/bmad-studio:${{ github.sha }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+  notification:
+    if: always()
+    needs: [lint-and-test, vault-secrets-sync, build-and-deploy, security-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

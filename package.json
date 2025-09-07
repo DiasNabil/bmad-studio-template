@@ -1,55 +1,61 @@
 {
   "name": "bmad-studio-template",
   "version": "1.0.0",
-  "description": "BMAD-Studio Evolutionary Framework Template - Adaptive project initialization with intelligent agent configuration",
+  "description": "BMAD Studio Development Template",
   "main": "index.js",
-  "bin": {
-    "bmad-studio": "./bin/bmad-studio.js",
-    "create-bmad-project": "./bin/create-project.js"
-  },
   "scripts": {
-    "start": "node bin/bmad-studio.js",
-    "create": "node bin/create-project.js",
+    "prepare": "husky install",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "test": "jest",
-    "lint": "eslint .",
-    "dev": "nodemon bin/bmad-studio.js"
-  },
-  "keywords": [
-    "bmad",
-    "framework",
-    "template",
-    "claude",
-    "agents",
-    "workflow",
-    "mcp",
-    "project-starter"
-  ],
-  "author": "BMAD Studio Team",
-  "license": "MIT",
-  "dependencies": {
-    "axios": "^1.4.0",
-    "chalk": "^4.1.2",
-    "commander": "^10.0.0",
-    "compromise": "^14.11.0",
-    "fs-extra": "^11.1.0",
-    "inquirer": "^9.2.0",
-    "lodash": "^4.17.21",
-    "natural": "^6.3.0",
-    "openai": "^4.0.0",
-    "ora": "^5.4.1",
-    "yaml": "^2.3.0"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
-    "eslint": "^8.57.1",
-    "jest": "^29.5.0",
-    "nodemon": "^2.0.22"
+    "@types/jest": "^29.5.12",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jest": "^28.2.0",
+    "husky": "^9.0.11",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "typescript": "^5.4.5"
   },
-  "engines": {
-    "node": ">=16.0.0"
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/bmad-studio/template"
-  },
-  "preferGlobal": true
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/lib"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  }
 }

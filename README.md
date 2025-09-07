@@ -1,181 +1,156 @@
-# BMAD-Studio Template 🚀
+# BMAD Studio DevOps Infrastructure
 
-**Framework évolutif intelligent pour projets agiles avec configuration automatique d'agents, workflows et MCP**
+## Overview
 
-## 🎯 Vision
+This repository contains the DevOps infrastructure and automation framework for BMAD Studio, designed to provide robust, scalable, and secure deployment capabilities.
 
-BMAD-Studio Template est un framework évolutif qui s'adapte automatiquement à tout type de projet en générant PRD et architecture après brainstorming, puis configure intelligemment les agents, workflows, hooks et MCP appropriés.
+### Key Components
 
-## ⚡ Installation Rapide
+- **Continuous Integration/Continuous Deployment (CI/CD)**
+- **Infrastructure as Code (IaC)**
+- **Security Automation**
+- **Environment Management**
+- **Monitoring and Observability**
 
-```bash
-# Installation globale
-npm install -g bmad-studio-template
+## Prerequisites
 
-# Ou utilisation directe avec npx
-npx bmad-studio-template my-project
-```
+Before getting started, ensure you have the following installed:
 
-## 🧠 Intelligence Adaptative
+- **Node.js** (v18.x or later)
+- **Docker**
+- **Terraform** (v1.5.x or later)
+- **AWS CLI**
+- **Git**
 
-Le template analyse votre brief et génère automatiquement:
-- ✅ **PRD détaillé** avec architecture technique
-- ✅ **Configuration d'agents** optimisée pour votre projet
-- ✅ **Workflows personnalisés** selon vos besoins
-- ✅ **Hooks MCP** pour intégration Claude seamless
-- ✅ **Structure projet** adaptée au domaine
+### Recommended Tools
 
-## 🎪 Agents Spécialisés Disponibles
+- **Snyk** for security scanning
+- **Prometheus**
+- **Grafana**
+- **PagerDuty** (optional, for advanced monitoring)
 
-### Core Agents (Toujours présents)
-- 🎭 **bmad-orchestrator** - Coordination générale et workflows
-- 🏗️ **architect** - Architecture système et technique
-- 💻 **dev** - Développement full-stack
-- 🔍 **qa** - Qualité et validation
-- 📊 **analyst** - Recherche et analyse
+## Getting Started
 
-### Agents Spécialisés (Configurés selon projet)
-- 🛒 **marketplace-expert** - E-commerce et marketplaces
-- 🎨 **ux-expert** - Design et expérience utilisateur
-- 📈 **pm** - Product management
-- ⚙️ **devops** - Infrastructure et déploiement
-- 🌍 **localization** - Internationalisation
-- 🔐 **security** - Sécurité et compliance
-
-## 🔄 Workflows Adaptatifs
-
-Le template inclut des workflows qui s'activent selon le contexte:
-
-### Workflows Core
-- `greenfield-fullstack` - Nouveau projet complet
-- `brownfield-enhancement` - Amélioration projet existant
-- `parallel-development` - Développement parallèle multi-domaines
-
-### Workflows Spécialisés
-- `marketplace-mvp-launch` - Lancement marketplace
-- `mobile-first-pwa` - Application mobile-first
-- `enterprise-integration` - Intégration entreprise
-- `ai-ml-pipeline` - Projets IA/ML
-
-## 🪝 Hooks MCP Intelligents
-
-Configuration automatique des hooks Claude selon le projet:
-- **Pre-commit hooks** - Validation code et architecture
-- **Story completion hooks** - Validation user stories
-- **Deployment hooks** - Validation pre-déploiement
-- **Performance hooks** - Monitoring performance
-
-## 🚀 Utilisation
-
-### 1. Initialisation Interactive
+### 1. Local Development Setup
 
 ```bash
-bmad-studio init my-project
+# Clone the repository
+git clone https://github.com/bmad-studio/devops-infrastructure.git
+
+# Install dependencies
+npm install
+
+# Set up environment configurations
+cp configs/environments/environment-manager.json.example configs/environments/environment-manager.json
+
+# Configure your environment-specific settings
+# Edit the JSON file with your specific configuration
 ```
 
-### 2. Brief et Brainstorming
+### 2. Environment Management
 
-Le système vous guide pour:
-- Définir la vision et objectifs
-- Identifier les parties prenantes
-- Spécifier les exigences techniques
-- Choisir les contraintes et préférences
+We support three primary environments:
+- **Development**
+- **Staging**
+- **Production**
 
-### 3. Génération Automatique
+Each environment has specific configurations managed through `configs/environments/environment-manager.json`.
 
-Le template génère automatiquement:
-- PRD structuré et architecture technique
-- Configuration agents optimisée
-- Workflows personnalisés
-- Hooks MCP configurés
+### 3. Deployment
 
-### 4. Développement Agile
+#### Local Deployment
+```bash
+# Deploy to local development environment
+./bin/deploy.sh development
 
-Une fois initialisé, votre projet dispose de:
-- Agents prêts à l'emploi
-- Workflows adaptés
-- Documentation générée
-- Intégration Claude seamless
+# Deploy to staging environment
+./bin/deploy.sh staging rolling-update
 
-## 🎨 Types de Projets Supportés
+# Deploy to production environment
+./bin/deploy.sh production blue-green
+```
 
-### 🌐 Web Applications
-- SPA (React, Vue, Angular)
-- Full-stack applications
-- Progressive Web Apps
-
-### 📱 Mobile
-- Mobile-first PWAs
-- Hybrid applications
-- Native app support
-
-### 🛒 E-commerce
-- Marketplaces multi-vendeurs
-- Boutiques en ligne
-- Plateformes B2B
-
-### 🏢 Enterprise
-- Systèmes de gestion
-- Intégrations ERP
-- Plateformes internes
-
-### 🤖 AI/ML
-- Pipelines ML
-- Applications IA
-- Chatbots intelligents
-
-## ⚙️ Configuration Avancée
-
-### Variables d'Environment
+### 4. Security Scanning
 
 ```bash
-# Configuration OpenAI pour analyse PRD
-OPENAI_API_KEY=your_key_here
-
-# Configuration Claude MCP
-CLAUDE_MCP_ENABLED=true
-
-# Mode debug
-BMAD_DEBUG=true
+# Run comprehensive security scan
+./configs/security/security-scan.sh
 ```
 
-### Configuration Personnalisée
+## CI/CD Workflow
 
-```yaml
-# bmad-config.yaml
-project:
-  type: auto-detect
-  complexity: adaptive
-  
-agents:
-  auto_configure: true
-  custom_agents: []
-  
-workflows:
-  default_strategy: parallel
-  validation_level: strict
-  
-mcp:
-  hooks_enabled: true
-  custom_hooks: []
-```
+Our GitHub Actions workflow (`/.github/workflows/ci-cd.yml`) handles:
+- Code Quality Checks
+- Automated Testing
+- Security Scanning
+- Deployment to Various Environments
 
-## 📚 Documentation
+### Deployment Strategies
 
-- [Guide Démarrage](docs/getting-started.md)
-- [Configuration Agents](docs/agents.md)
-- [Workflows Personnalisés](docs/workflows.md)
-- [Hooks MCP](docs/mcp-hooks.md)
-- [API Template](docs/api.md)
+1. **Rolling Update**: Gradual infrastructure replacement
+2. **Blue/Green Deployment**: Zero-downtime releases
+3. **Canary Releases**: Controlled feature rollout
 
-## 🤝 Contribution
+## Monitoring and Observability
 
-Contributions bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Metrics**: Tracked via Prometheus
+- **Visualization**: Grafana Dashboards
+- **Logging**: ELK Stack Integration
 
-## 📄 Licence
+### Key Metrics Monitored
+- Request Latency
+- Error Rates
+- Resource Utilization
+- Application Performance
 
-MIT License - voir [LICENSE](LICENSE)
+## Security Considerations
+
+- Automated Dependency Vulnerability Scanning
+- Static Application Security Testing (SAST)
+- Container Image Security Scanning
+- Compliance Checks (GDPR, CCPA)
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Deployment Failures**
+   - Check `security-reports/` for detailed logs
+   - Verify environment configurations
+   - Ensure all prerequisites are met
+
+2. **Security Scan Failures**
+   - Review `security-reports/comprehensive-security-report.txt`
+   - Address any highlighted vulnerabilities
+   - Update dependencies if required
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+### Contribution Guidelines
+
+- Follow existing code structure
+- Add appropriate tests
+- Update documentation
+- Ensure security scans pass
+
+## Contact and Support
+
+- **DevOps Team**: devops@bmadstudio.com
+- **Slack**: #devops-support
+- **On-Call**: Managed via PagerDuty
+
+## License
+
+[Insert License Information]
 
 ---
 
-**BMAD-Studio Template** - *Intelligence adaptative pour projets agiles* 🚀
+**Note**: This is a living document. Regularly review and update to reflect current practices and technologies.
+
+Last Updated: $(date)

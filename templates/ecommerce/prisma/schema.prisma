@@ -1,0 +1,69 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  VENDOR
+  CUSTOMER
+  ADMIN
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  REFUNDED
+  CANCELLED
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String
+  role          UserRole     @default(CUSTOMER)
+  profileData   Json?
+  products      Product[]
+  transactions  Transaction[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Product {
+  id            String        @id @default(cuid())
+  name          String
+  description   String
+  price         Float
+  vendor        User          @relation(fields: [vendorId], references: [id])
+  vendorId      String
+  status        ProductStatus @default(DRAFT)
+  culturalTags  String[]
+  metadata      Json?
+  transactions  Transaction[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  product       Product           @relation(fields: [productId], references: [id])
+  productId     String
+  buyer         User              @relation(fields: [buyerId], references: [id])
+  buyerId       String
+  amount        Float
+  status        TransactionStatus @default(PENDING)
+  paymentMethod String
+  metadata      Json?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}

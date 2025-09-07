@@ -1,0 +1,119 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bmad-studio-config
+  namespace: bmad-studio
+  labels:
+    app: bmad-studio
+    environment: production
+    managed-by: terraform
+    config-version: "1.0"
+data:
+  # Application Configuration
+  APP_ENV: "production"
+  LOG_LEVEL: "info"
+  PORT: "8080"
+  METRICS_PORT: "9090"
+  HEALTH_CHECK_PORT: "8081"
+  
+  # Database Configuration
+  DB_HOST: "bmad-studio-postgresql.bmad-studio.svc.cluster.local"
+  DB_PORT: "5432"
+  DB_NAME: "bmad_studio_db"
+  DB_SSL_MODE: "require"
+  DB_MAX_CONNECTIONS: "200"
+  DB_POOL_SIZE: "20"
+  DB_POOL_TIMEOUT: "10000"
+  
+  # Redis Configuration
+  REDIS_HOST: "bmad-studio-redis.bmad-studio.svc.cluster.local"
+  REDIS_PORT: "6379"
+  REDIS_MAX_RETRIES: "3"
+  REDIS_RETRY_DELAY: "1000"
+  
+  # Vault Configuration
+  VAULT_ADDR: "http://vault.vault-system.svc.cluster.local:8200"
+  VAULT_NAMESPACE: "bmad-studio"
+  
+  # Monitoring Configuration
+  PROMETHEUS_ENABLED: "true"
+  PROMETHEUS_METRICS_PATH: "/metrics"
+  HEALTH_CHECK_PATH: "/health"
+  READINESS_CHECK_PATH: "/ready"
+  
+  # Security Configuration
+  SECURITY_LEVEL: "enterprise"
+  ENCRYPTION_ALGORITHM: "AES-256"
+  SESSION_TIMEOUT: "3600"
+  
+  # Feature Flags
+  HOT_RELOAD: "true"
+  DEBUG_MODE: "false"
+  TELEMETRY: "true"
+  ANALYTICS: "true"
+  FEATURE_FLAGS: "true"
+  
+  # CI/CD Configuration
+  DEPLOYMENT_STRATEGY: "blue-green"
+  PARALLEL_JOBS: "4"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bmad-studio-nginx-config
+  namespace: bmad-studio
+  labels:
+    app: bmad-studio
+    component: nginx
+    environment: production
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      upstream backend {
+        server 127.0.0.1:8080;
+      }
+      
+      server {
+        listen 80;
+        server_name _;
+        
+        # Security headers
+        add_header X-Frame-Options DENY;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains";
+        
+        # Health check endpoint
+        location /health {
+          access_log off;
+          return 200 "healthy\n";
+          add_header Content-Type text/plain;
+        }
+        
+        # Metrics endpoint (internal only)
+        location /metrics {
+          allow 10.0.0.0/8;
+          deny all;
+          proxy_pass http://127.0.0.1:9090/metrics;
+        }
+        
+        # Main application
+        location / {
+          proxy_pass http://backend;
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          
+          # Timeouts
+          proxy_connect_timeout 30s;
+          proxy_send_timeout 30s;
+          proxy_read_timeout 30s;
+        }
+      }
+    }

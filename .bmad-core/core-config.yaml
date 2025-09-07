@@ -1,0 +1,293 @@
+# BMAD Studio Template - Core Configuration
+# Version: 2.1.0
+# Description: Configuration centrale pour le template BMAD Studio DevOps Infrastructure
+
+version: "2.2.0"
+metadata:
+  name: "bmad-studio-template"
+  description: "BMAD Studio Development Template with DevOps Infrastructure"
+  maintainer: "BMAD Studio DevOps Team"
+  created: "2025-09-07"
+  last_updated: "2025-09-07"
+  database_config_version: "1.0.0"
+
+project:
+  type: "template"
+  category: "devops-infrastructure"
+  security_level: "enterprise"
+  compliance: ["GDPR", "CCPA"]
+  
+environments:
+  development:
+    enabled: true
+    auto_deploy: true
+    monitoring: "basic"
+    security: "standard"
+  staging:
+    enabled: true
+    auto_deploy: false
+    monitoring: "advanced"
+    security: "enhanced"
+    approval_required: true
+  production:
+    enabled: true
+    auto_deploy: false
+    monitoring: "full"
+    security: "maximum"
+    approval_required: true
+    rollback_enabled: true
+
+agents:
+  validation_required: true
+  fallback_enabled: true
+  parallel_execution: true
+  specialized_agents:
+    - name: "bmad-analyst"
+      enabled: true
+      priority: "high"
+    - name: "bmad-architect"
+      enabled: true
+      priority: "high"
+    - name: "bmad-dev"
+      enabled: true
+      priority: "medium"
+    - name: "bmad-qa"
+      enabled: true
+      priority: "medium"
+    - name: "devops-automator"
+      enabled: true
+      priority: "high"
+
+security:
+  secrets_management:
+    provider: "vault"
+    encryption: "AES-256"
+    rotation_enabled: true
+    rotation_interval: "30d"
+  vulnerability_scanning:
+    enabled: true
+    provider: "snyk"
+    schedule: "daily"
+    fail_on_critical: true
+  compliance_checks:
+    enabled: true
+    frameworks: ["OWASP", "CIS"]
+    
+infrastructure:
+  cloud_provider: "aws"
+  deployment_strategy: "blue-green"
+  auto_scaling:
+    enabled: true
+    min_instances: 2
+    max_instances: 10
+    target_cpu: 70
+  load_balancer:
+    enabled: true
+    type: "application"
+    health_check_interval: "30s"
+  databases:
+    postgresql:
+      primary:
+        type: "postgresql"
+        version: "14.9"
+        instance_class: "db.t3.medium"
+        allocated_storage: 100
+        max_allocated_storage: 1000
+        multi_az: true
+        backup_enabled: true
+        backup_schedule: "0 2 * * *"
+        backup_retention: 30
+        performance_insights: true
+        encryption_enabled: true
+        ssl_required: true
+        monitoring_enabled: true
+        slow_query_threshold: 5000
+      replica:
+        enabled: true
+        instance_class: "db.t3.small"
+        read_only: true
+        lag_threshold: 30
+      connection_pooling:
+        enabled: true
+        max_connections: 200
+        pool_size: 20
+        pool_timeout: 10000
+      maintenance:
+        auto_vacuum: true
+        auto_analyze: true
+        reindex_schedule: "0 3 * * 0"
+        cleanup_schedule: "0 4 * * *"
+    redis:
+      cluster:
+        type: "redis"
+        version: "7.0"
+        node_type: "cache.t3.medium"
+        num_cache_nodes: 3
+        multi_az: true
+        persistence: true
+        backup_enabled: true
+        backup_retention: 7
+        encryption_at_rest: true
+        encryption_in_transit: true
+        auth_token_enabled: true
+      sentinel:
+        enabled: true
+        instances: 3
+        failover_timeout: 180000
+      memory_policy: "allkeys-lru"
+      max_memory: "2gb"
+      eviction_policy: "allkeys-lru"
+    backup_strategy:
+      full_backup_schedule: "0 2 * * 0"
+      incremental_backup_schedule: "0 3 * * 1-6"
+      retention_policy:
+        full_backups: 30
+        incremental_backups: 7
+        wal_retention: 7
+      destinations:
+        - type: "s3"
+          bucket: "bmad-studio-db-backups"
+          encryption: "AES256"
+        - type: "local"
+          path: "/var/backups/postgresql"
+          retention_days: 14
+      verification:
+        enabled: true
+        schedule: "0 6 * * 1"
+
+monitoring:
+  metrics:
+    provider: "prometheus"
+    retention: "30d"
+    scrape_interval: "15s"
+    exporters:
+      postgresql:
+        enabled: true
+        port: 9187
+        queries_config: "configs/databases/monitoring/postgres-queries.yaml"
+        include_databases: ["bmad_studio_db"]
+      redis:
+        enabled: true
+        port: 9121
+        check_keys: true
+        system_metrics: true
+        key_groups: ["session:*", "cache:*", "queue:*"]
+      node:
+        enabled: true
+        port: 9100
+      blackbox:
+        enabled: true
+        port: 9115
+        config: "configs/databases/monitoring/blackbox-config.yml"
+        probes:
+          - name: "postgresql-health"
+            module: "postgresql_connect"
+            targets: ["${POSTGRES_HOST}:${POSTGRES_PORT}"]
+          - name: "redis-health"
+            module: "redis_connect"
+            targets: ["${REDIS_HOST}:${REDIS_PORT}"]
+  dashboards:
+    provider: "grafana"
+    auto_provision: true
+    database_dashboard: "configs/databases/monitoring/grafana-dashboard.json"
+    custom_dashboards:
+      - name: "Database Performance"
+        path: "configs/databases/monitoring/performance-dashboard.json"
+      - name: "Database Security"
+        path: "configs/databases/monitoring/security-dashboard.json"
+  alerting:
+    enabled: true
+    channels: ["slack", "email"]
+    severity_levels: ["critical", "warning", "info"]
+    rules:
+      database:
+        - name: "PostgreSQL Down"
+          condition: "pg_up == 0"
+          severity: "critical"
+          duration: "1m"
+        - name: "High Connection Count"
+          condition: "pg_stat_activity_count > 150"
+          severity: "warning"
+          duration: "5m"
+        - name: "Slow Query Alert"
+          condition: "pg_stat_statements_mean_time_seconds > 5"
+          severity: "warning"
+          duration: "2m"
+        - name: "Redis Down"
+          condition: "redis_up == 0"
+          severity: "critical"
+          duration: "1m"
+        - name: "Redis Memory High"
+          condition: "(redis_memory_used_bytes / redis_config_maxmemory) > 0.9"
+          severity: "warning"
+          duration: "5m"
+        - name: "Database Disk Usage High"
+          condition: "(node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1"
+          severity: "critical"
+          duration: "2m"
+  logging:
+    provider: "elk"
+    retention: "90d"
+    structured_logs: true
+    database_logs:
+      postgresql:
+        enabled: true
+        log_groups: ["/aws/rds/instance/bmad-studio-postgresql/postgresql"]
+        slow_query_logging: true
+        connection_logging: true
+      redis:
+        enabled: true
+        log_groups: ["/aws/elasticache/bmad-studio-redis"]
+        slow_log_enabled: true
+    log_aggregation:
+      fluentd:
+        enabled: true
+        config: "configs/databases/monitoring/fluentd.conf"
+      logstash:
+        enabled: true
+        config: "configs/databases/monitoring/logstash.conf"
+
+quality:
+  code_coverage:
+    minimum: 85
+    target: 90
+  security_scan:
+    required: true
+    blocking: true
+  performance_tests:
+    enabled: true
+    thresholds:
+      response_time: "200ms"
+      throughput: "1000rps"
+  
+ci_cd:
+  pipeline:
+    stages: ["lint", "test", "security-scan", "build", "deploy"]
+    parallel_jobs: 4
+  deployment:
+    strategies: ["rolling", "blue-green", "canary"]
+    approval_gates: ["staging", "production"]
+  notifications:
+    enabled: true
+    channels: ["slack", "email"]
+
+features:
+  hot_reload: true
+  debug_mode: false
+  telemetry: true
+  analytics: true
+  feature_flags: true
+
+integrations:
+  github:
+    enabled: true
+    workflows: [".github/workflows/ci-cd.yml"]
+  docker:
+    enabled: true
+    registry: "ecr"
+  terraform:
+    enabled: true
+    state_backend: "s3"
+  kubernetes:
+    enabled: true
+    namespace: "bmad-studio"

@@ -1,0 +1,90 @@
+global:
+  scrape_interval: 10s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+  # Advanced configuration for performance
+  external_labels:
+    environment: 'bmad-studio-prod'
+    monitoring_cluster: 'primary'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - localhost:9093
+
+rule_files:
+  - "alert_rules.yml"
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+
+  - job_name: 'application_metrics'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:8080']
+
+  - job_name: 'docker_engine'
+    static_configs:
+      - targets: ['localhost:9323']
+
+# Custom Application Metrics
+  - job_name: 'bmad_studio_app'
+    metrics_path: '/bmad/metrics'
+    static_configs:
+      - targets: ['app.bmadstudio.com:8080']
+    
+    # Authentication for secure metrics endpoint
+    basic_auth:
+      username: 'prometheus'
+      password: '${PROMETHEUS_METRICS_PASSWORD}'
+
+# Advanced Service Discovery for Kubernetes
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        replacement: '$1:10250/metrics'
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        replacement: /api/v1/nodes/${1}/proxy/metrics
+        target_label: __metrics_path__
+    
+    # Advanced Metrics Filtering
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'node_.*'
+        action: keep
+      - source_labels: [__name__]
+        regex: 'container_.*'
+        action: keep
+
+  # PostgreSQL Metrics
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgresql-exporter:9187']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_.*'
+        action: keep
+
+  # Redis Metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'redis_.*'
+        action: keep

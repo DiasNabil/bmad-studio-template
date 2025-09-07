@@ -1,0 +1,88 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bmad-studio-service
+  namespace: bmad-studio
+  labels:
+    app: bmad-studio
+    environment: production
+    managed-by: terraform
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: TCP
+  selector:
+    app: bmad-studio
+    version: v1.0.0
+  sessionAffinity: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bmad-studio-headless
+  namespace: bmad-studio
+  labels:
+    app: bmad-studio
+    service-type: headless
+    environment: production
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: bmad-studio
+    version: v1.0.0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bmad-studio-loadbalancer
+  namespace: bmad-studio
+  labels:
+    app: bmad-studio
+    service-type: external
+    environment: production
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval-seconds: "10"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-timeout-seconds: "5"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-healthy-threshold-count: "2"
+    service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold-count: "2"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+  - name: https
+    port: 443
+    targetPort: 80
+    protocol: TCP
+  selector:
+    app: bmad-studio
+    version: v1.0.0
+  sessionAffinity: None
+  loadBalancerSourceRanges:
+  - 0.0.0.0/0  # Configure appropriate CIDR blocks for production

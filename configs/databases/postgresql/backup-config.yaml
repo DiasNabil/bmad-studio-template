@@ -1,0 +1,50 @@
+# PostgreSQL Backup Configuration
+# BMAD Studio Template - Automated Backup Strategy
+
+backup:
+  strategy: "continuous"
+  retention_policy:
+    full_backups: 30  # days
+    incremental_backups: 7  # days
+    wal_retention: 7  # days
+  
+  schedules:
+    full_backup:
+      cron: "0 2 * * 0"  # Weekly at 2 AM Sunday
+      compression: "gzip"
+      parallel_jobs: 4
+    incremental_backup:
+      cron: "0 3 * * 1-6"  # Daily at 3 AM Mon-Sat
+      compression: "lz4"
+      parallel_jobs: 2
+    wal_archive:
+      continuous: true
+      compression: "gzip"
+      
+  destinations:
+    primary:
+      type: "s3"
+      bucket: "bmad-studio-db-backups"
+      region: "us-east-1"
+      encryption: "AES256"
+      path_prefix: "postgresql/production"
+    secondary:
+      type: "local"
+      path: "/var/backups/postgresql"
+      retention_days: 14
+      
+  monitoring:
+    alerts:
+      backup_failure: true
+      retention_exceeded: true
+      storage_quota_warning: 80  # percent
+    notifications:
+      slack_webhook: "${SLACK_WEBHOOK_URL}"
+      email_recipients:
+        - "devops@bmadstudio.com"
+        - "alerts@bmadstudio.com"
+        
+  validation:
+    verify_backups: true
+    test_restore_frequency: "weekly"
+    integrity_check: "daily"

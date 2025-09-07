@@ -1,0 +1,23 @@
+# Redis ACL Configuration for BMAD Studio Template
+# User Access Control Lists
+
+# Default user - disabled for security
+user default off
+
+# Application user with read/write permissions
+user bmad_app_user on >${REDIS_APP_USER_PASSWORD} ~* &* +@all -flushall -flushdb -shutdown -debug -config -acl
+
+# Read-only user for monitoring and analytics
+user bmad_readonly on >${REDIS_READONLY_PASSWORD} ~* &* +@read +ping +info +client +latency +memory +slowlog -@dangerous
+
+# Sentinel user for high availability
+user sentinel on >${REDIS_SENTINEL_PASSWORD} allchannels +ping +sentinel +subscribe +unsubscribe +psubscribe +punsubscribe +publish +info +client +role +latency +memory
+
+# Monitoring user for Prometheus/metrics collection
+user monitoring on >${REDIS_MONITORING_PASSWORD} ~* +ping +info +config|get +client +memory +latency +slowlog +dbsize
+
+# Cache-only user for session management
+user cache_user on >${REDIS_CACHE_PASSWORD} ~cache:* ~session:* +@read +@write +@string +@hash +@list +@set +@sortedset +expire +ttl +exists +del +ping
+
+# Admin user with elevated privileges (use sparingly)
+user admin on >${REDIS_ADMIN_PASSWORD} ~* &* +@all

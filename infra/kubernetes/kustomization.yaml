@@ -1,0 +1,101 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: bmad-studio-kustomization
+  annotations:
+    description: "Kustomization for BMAD Studio production deployment"
+
+namespace: bmad-studio
+
+resources:
+  - namespace.yaml
+  - serviceaccount.yaml
+  - configmap.yaml
+  - secret.yaml
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+  - networkpolicy.yaml
+  - poddisruptionbudget.yaml
+  - monitoring.yaml
+
+commonLabels:
+  app: bmad-studio
+  version: v1.0.0
+  environment: production
+  managed-by: kustomize
+
+commonAnnotations:
+  description: "BMAD Studio production deployment"
+  contact: "bmad-studio-devops@company.com"
+  documentation: "https://wiki.company.com/bmad-studio"
+
+images:
+  - name: bmad-studio
+    newTag: v1.0.0
+  - name: nginx
+    newTag: 1.25-alpine
+
+replicas:
+  - name: bmad-studio
+    count: 3
+
+configMapGenerator:
+  - name: bmad-studio-env-config
+    literals:
+      - DEPLOYMENT_DATE=$(date +%Y-%m-%d-%H-%M-%S)
+      - GIT_COMMIT=$(git rev-parse --short HEAD)
+      - BUILD_NUMBER=$(BUILD_NUMBER:-unknown)
+
+secretGenerator:
+  - name: bmad-studio-build-secrets
+    literals:
+      - BUILD_TOKEN=placeholder
+    type: Opaque
+
+patchesStrategicMerge:
+  - |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: bmad-studio
+      namespace: bmad-studio
+    spec:
+      template:
+        metadata:
+          annotations:
+            deployment.timestamp: $(date +%Y-%m-%d-%H-%M-%S)
+
+patches:
+  - target:
+      kind: Deployment
+      name: bmad-studio
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: DEPLOYMENT_TIMESTAMP
+          value: $(date +%Y-%m-%d-%H-%M-%S)
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: GIT_COMMIT
+          value: $(git rev-parse --short HEAD)
+
+vars:
+  - name: NAMESPACE
+    objref:
+      kind: Namespace
+      name: bmad-studio
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name
+  - name: SERVICE_NAME
+    objref:
+      kind: Service
+      name: bmad-studio-service
+      apiVersion: v1
+    fieldref:
+      fieldpath: metadata.name

@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bmad-studio
+  labels:
+    name: bmad-studio
+    environment: production
+    managed-by: terraform
+    project: bmad-studio-template
+    security-level: enterprise
+  annotations:
+    description: "BMAD Studio production environment"
+    contact: "bmad-studio-devops@company.com"

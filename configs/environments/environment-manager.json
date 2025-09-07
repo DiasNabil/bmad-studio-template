@@ -1,0 +1,136 @@
+{
+    "environments": {
+        "development": {
+            "name": "Development",
+            "type": "local",
+            "config": {
+                "debug": true,
+                "log_level": "debug",
+                "database": {
+                    "host": "localhost",
+                    "port": 5432,
+                    "name": "bmad_dev",
+                    "connection_pool_size": 10
+                },
+                "caching": {
+                    "enabled": true,
+                    "provider": "redis",
+                    "host": "127.0.0.1",
+                    "port": 6379
+                },
+                "feature_flags": {
+                    "new_ui": false,
+                    "experimental_features": true
+                }
+            },
+            "scaling": {
+                "max_concurrent_requests": 50,
+                "auto_scaling": false
+            },
+            "monitoring": {
+                "enabled": true,
+                "alert_threshold": "warning"
+            }
+        },
+        "staging": {
+            "name": "Staging",
+            "type": "cloud",
+            "config": {
+                "debug": false,
+                "log_level": "info",
+                "database": {
+                    "host": "staging-db.bmadstudio.com",
+                    "port": 5432,
+                    "name": "bmad_staging",
+                    "connection_pool_size": 50
+                },
+                "caching": {
+                    "enabled": true,
+                    "provider": "redis",
+                    "host": "staging-cache.bmadstudio.com",
+                    "port": 6379
+                },
+                "feature_flags": {
+                    "new_ui": true,
+                    "experimental_features": false
+                }
+            },
+            "scaling": {
+                "max_concurrent_requests": 200,
+                "auto_scaling": true,
+                "min_instances": 2,
+                "max_instances": 5
+            },
+            "monitoring": {
+                "enabled": true,
+                "alert_threshold": "critical"
+            }
+        },
+        "production": {
+            "name": "Production",
+            "type": "cloud",
+            "config": {
+                "debug": false,
+                "log_level": "error",
+                "database": {
+                    "host": "prod-db.bmadstudio.com",
+                    "port": 5432,
+                    "name": "bmad_prod",
+                    "connection_pool_size": 100
+                },
+                "caching": {
+                    "enabled": true,
+                    "provider": "redis-cluster",
+                    "hosts": [
+                        "prod-cache-1.bmadstudio.com",
+                        "prod-cache-2.bmadstudio.com",
+                        "prod-cache-3.bmadstudio.com"
+                    ],
+                    "port": 6379
+                },
+                "feature_flags": {
+                    "new_ui": true,
+                    "experimental_features": false
+                }
+            },
+            "scaling": {
+                "max_concurrent_requests": 1000,
+                "auto_scaling": true,
+                "min_instances": 5,
+                "max_instances": 20
+            },
+            "monitoring": {
+                "enabled": true,
+                "alert_threshold": "emergency",
+                "notification_channels": [
+                    "slack",
+                    "pagerduty",
+                    "email"
+                ]
+            },
+            "security": {
+                "rate_limiting": {
+                    "requests_per_second": 100,
+                    "burst_limit": 200
+                },
+                "ddos_protection": true
+            }
+        }
+    },
+    "global_settings": {
+        "default_environment": "development",
+        "environment_switch_strategy": "blue-green",
+        "configuration_management": {
+            "provider": "vault",
+            "encryption": "aes-256-gcm"
+        }
+    },
+    "deployment_policies": {
+        "rollback_timeout": 300,
+        "health_check_endpoints": [
+            "/health",
+            "/metrics",
+            "/version"
+        ]
+    }
+}

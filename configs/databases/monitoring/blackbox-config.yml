@@ -1,0 +1,212 @@
+# Blackbox Exporter Configuration for BMAD Studio Template
+# Service availability monitoring
+
+modules:
+  http_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      valid_status_codes: []
+      method: GET
+      headers:
+        Host: bmadstudio.com
+        Accept-Language: en-US
+      no_follow_redirects: false
+      fail_if_ssl: false
+      fail_if_not_ssl: false
+      fail_if_body_matches_regexp: []
+      fail_if_body_not_matches_regexp: []
+      fail_if_header_matches: []
+      fail_if_header_not_matches: []
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: "ip4"
+      ip_protocol_fallback: true
+
+  http_post_2xx:
+    prober: http
+    timeout: 5s
+    http:
+      method: POST
+      headers:
+        Content-Type: application/json
+      body: '{"health": "check"}'
+
+  tcp_connect:
+    prober: tcp
+    timeout: 5s
+
+  pop3s_banner:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      query_response:
+        - expect: "^+OK"
+      tls: true
+      tls_config:
+        insecure_skip_verify: false
+
+  grpc:
+    prober: grpc
+    timeout: 5s
+    grpc:
+      tls: true
+      tls_config:
+        insecure_skip_verify: false
+
+  grpc_plain:
+    prober: grpc
+    timeout: 5s
+    grpc:
+      tls: false
+      service: "health"
+
+  ssh_banner:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      query_response:
+        - expect: "^SSH-2.0-"
+      tls: false
+
+  irc_banner:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      query_response:
+        - send: "NICK prober"
+        - send: "USER prober prober prober :prober"
+        - expect: "PING :([^ ]+)"
+          send: "PONG ${1}"
+        - expect: "^:[^ ]+ 001"
+
+  icmp:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      preferred_ip_protocol: "ip4"
+      source_ip_address: "127.0.0.1"
+
+  icmp_ttl5:
+    prober: icmp
+    timeout: 5s
+    icmp:
+      ttl: 5
+
+  dns_udp:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: "kubernetes.default.svc.cluster.local"
+      query_type: "A"
+      valid_rcodes:
+      - NOERROR
+      validate_answer_rrs:
+        fail_if_matches_regexp: []
+        fail_if_all_match_regexp: []
+        fail_if_not_matches_regexp: []
+        fail_if_none_matches_regexp: []
+      validate_authority_rrs:
+        fail_if_matches_regexp: []
+        fail_if_all_match_regexp: []
+        fail_if_not_matches_regexp: []
+        fail_if_none_matches_regexp: []
+      validate_additional_rrs:
+        fail_if_matches_regexp: []
+        fail_if_all_match_regexp: []
+        fail_if_not_matches_regexp: []
+        fail_if_none_matches_regexp: []
+
+  dns_soa:
+    prober: dns
+    timeout: 5s
+    dns:
+      query_name: "kubernetes.default.svc.cluster.local"
+      query_type: "SOA"
+
+  dns_tcp:
+    prober: dns
+    timeout: 5s
+    dns:
+      transport_protocol: "tcp"
+      preferred_ip_protocol: "ip4"
+      query_name: "kubernetes.default.svc.cluster.local"
+      query_type: "A"
+
+  # PostgreSQL specific probes
+  postgresql_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+
+  postgresql_ssl_connect:
+    prober: tcp
+    timeout: 10s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      tls: true
+      tls_config:
+        insecure_skip_verify: false
+
+  # Redis specific probes  
+  redis_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      query_response:
+        - send: "PING\r\n"
+        - expect: "PONG"
+
+  redis_auth_connect:
+    prober: tcp
+    timeout: 5s
+    tcp:
+      preferred_ip_protocol: "ip4"
+      query_response:
+        - send: "AUTH ${REDIS_PASSWORD}\r\n"
+        - expect: "OK"
+        - send: "PING\r\n" 
+        - expect: "PONG"
+
+  # Application health checks
+  app_health_check:
+    prober: http
+    timeout: 10s
+    http:
+      valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+      method: GET
+      no_follow_redirects: false
+      preferred_ip_protocol: "ip4"
+      valid_status_codes: [200]
+      fail_if_body_not_matches_regexp:
+        - '"status":\s*"healthy"'
+      headers:
+        Accept: application/json
+        User-Agent: "Blackbox-Exporter/BMAD-Studio"
+
+  # Database health endpoints
+  db_health_check:
+    prober: http
+    timeout: 15s
+    http:
+      method: GET
+      valid_status_codes: [200]
+      fail_if_body_not_matches_regexp:
+        - '"database":\s*"connected"'
+        - '"redis":\s*"connected"'
+      headers:
+        Accept: application/json
+
+  # SSL certificate expiry check
+  ssl_expiry:
+    prober: http
+    timeout: 10s
+    http:
+      method: GET
+      fail_if_not_ssl: true
+      tls_config:
+        insecure_skip_verify: false
+      preferred_ip_protocol: "ip4"
