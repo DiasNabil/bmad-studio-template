@@ -1,0 +1,70 @@
+{
+  "mcpServers": {
+    "bmad-studio": {
+      "command": "node",
+      "args": [".bmad-core/mcp-server.js"],
+      "env": {
+        "BMAD_PROJECT_PATH": ".",
+        "BMAD_CONFIG_PATH": ".bmad-core/core-config.yaml"
+      }
+    }
+  },
+  "hooks": [
+    {{#each MCP_HOOKS}}
+    {
+      "name": "{{this}}",
+      "enabled": true,
+      "trigger": "{{hookTrigger this}}",
+      "config": {
+        "validation": true,
+        "autoFix": {{hookAutoFix this}},
+        "severity": "{{hookSeverity this}}"
+      }
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ],
+  "agents": [
+    {{#each SELECTED_AGENTS}}
+    {
+      "id": "{{this}}",
+      "enabled": true,
+      "autoActivation": {{agentAutoActivation this}},
+      "priority": {{agentPriority this}},
+      "specialization": "{{agentSpecialization this}}"
+    }{{#unless @last}},{{/unless}}
+    {{/each}}
+  ],
+  "tools": {
+    "enabled": {{MCP_TOOLS}},
+    "restrictions": {
+      "fileWrite": {{FILE_WRITE_RESTRICTIONS}},
+      "networkAccess": {{NETWORK_ACCESS_RESTRICTIONS}},
+      "shellAccess": {{SHELL_ACCESS_RESTRICTIONS}}
+    }
+  },
+  "workflows": {
+    "autoStart": "{{DEFAULT_WORKFLOW}}",
+    "parallel": {{PARALLEL_EXECUTION}},
+    "validation": {
+      "preExecution": true,
+      "postExecution": true,
+      "realTimeMonitoring": {{REAL_TIME_MONITORING}}
+    }
+  },
+  "monitoring": {
+    "enabled": {{MONITORING_ENABLED}},
+    "metrics": {{MONITORING_METRICS}},
+    "alerts": {
+      "performance": {{PERFORMANCE_ALERTS}},
+      "errors": true,
+      "conflicts": true,
+      "security": {{SECURITY_ALERTS}}
+    }
+  },
+  "customization": {
+    "projectType": {{PROJECT_TYPES}},
+    "complexity": "{{COMPLEXITY}}",
+    "templates": {{CUSTOM_TEMPLATES}},
+    "extensions": {{CUSTOM_EXTENSIONS}}
+  }
+}

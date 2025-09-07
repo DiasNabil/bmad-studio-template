@@ -1,0 +1,41 @@
+# BMAD Core Configuration Template
+# This file will be populated during project initialization
+
+project:
+  name: "PROJECT_NAME_PLACEHOLDER"
+  type: ["web-app"]
+  complexity: "moderate"
+  version: "1.0.0"
+
+agents:
+  available:
+    - bmad-orchestrator
+    - architect
+    - dev
+    - qa
+    - analyst
+  default: bmad-orchestrator
+
+workflows:
+  enabled:
+    - enhanced-validation-workflow
+  default: enhanced-validation-workflow
+
+mcp:
+  enabled: true
+  hooks: []
+  agents: []
+  tools: 
+    - "Read"
+    - "Write" 
+    - "Edit"
+    - "MultiEdit"
+    - "Bash"
+    - "Grep"
+    - "Glob"
+  monitoring:
+    performance: true
+    errors: true
+    usage: true
+
+generated: "GENERATION_DATE_PLACEHOLDER"

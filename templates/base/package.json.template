@@ -1,0 +1,31 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "version": "1.0.0",
+  "description": "{{PROJECT_DESCRIPTION}}",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "{{START_COMMAND}}",
+    "dev": "{{DEV_COMMAND}}",
+    "build": "{{BUILD_COMMAND}}",
+    "test": "{{TEST_COMMAND}}",
+    "test:watch": "{{TEST_WATCH_COMMAND}}",
+    "lint": "{{LINT_COMMAND}}",
+    "lint:fix": "{{LINT_FIX_COMMAND}}",
+    "format": "{{FORMAT_COMMAND}}",
+    "typecheck": "{{TYPECHECK_COMMAND}}"
+  },
+  "keywords": {{KEYWORDS}},
+  "author": "{{AUTHOR}}",
+  "license": "{{LICENSE}}",
+  "dependencies": {{DEPENDENCIES}},
+  "devDependencies": {{DEV_DEPENDENCIES}},
+  "engines": {
+    "node": "{{NODE_VERSION}}"
+  },
+  "bmadStudio": {
+    "version": "1.0.0",
+    "projectType": {{PROJECT_TYPES}},
+    "complexity": "{{COMPLEXITY}}",
+    "generated": "{{GENERATED_DATE}}"
+  }
+}

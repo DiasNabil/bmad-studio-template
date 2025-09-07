@@ -1,0 +1,218 @@
+# {{PROJECT_NAME}}
+
+> {{PROJECT_DESCRIPTION}}
+
+**Généré avec BMAD Studio Template** 🚀
+
+## 📋 Aperçu du Projet
+
+- **Type**: {{PROJECT_TYPES_DISPLAY}}
+- **Complexité**: {{COMPLEXITY}}
+- **Généré le**: {{GENERATED_DATE}}
+- **Version BMAD Studio**: 1.0.0
+
+## 🏗️ Architecture
+
+{{#if ARCHITECTURE_SUMMARY}}
+{{ARCHITECTURE_SUMMARY}}
+{{else}}
+Architecture {{COMPLEXITY}} avec les composants suivants:
+{{#each ARCHITECTURE_COMPONENTS}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+## 🚀 Démarrage Rapide
+
+### Prérequis
+
+- Node.js {{NODE_VERSION}}
+{{#each PREREQUISITES}}
+- {{this}}
+{{/each}}
+
+### Installation
+
+```bash
+# Installation des dépendances
+npm install
+
+# Démarrage du mode développement
+npm run dev
+
+# Construction pour production
+npm run build
+```
+
+## 🤖 Agents BMAD Studio Configurés
+
+{{#each SELECTED_AGENTS}}
+- **{{agentTitle this}}** - {{agentDescription this}}
+{{/each}}
+
+### Utilisation des Agents
+
+```bash
+# Activer l'orchestrateur principal
+*agent bmad-orchestrator
+
+# Voir tous les agents disponibles
+*agent
+
+# Obtenir de l'aide
+*help
+```
+
+## ⚙️ Workflows Disponibles
+
+{{#each ENABLED_WORKFLOWS}}
+- **{{workflowTitle this}}** - {{workflowDescription this}}
+{{/each}}
+
+### Lancement des Workflows
+
+```bash
+# Démarrer le workflow par défaut
+*workflow {{DEFAULT_WORKFLOW}}
+
+# Voir tous les workflows
+*workflow
+
+# Guidance pour choisir un workflow
+*workflow-guidance
+```
+
+## 📁 Structure du Projet
+
+```
+{{PROJECT_NAME}}/
+├── .bmad-core/              # Configuration BMAD Studio
+│   ├── agents/              # Définitions des agents
+│   ├── workflows/           # Workflows personnalisés
+│   ├── templates/           # Templates de documents
+│   └── core-config.yaml     # Configuration principale
+├── .claude/                 # Configuration MCP Claude
+├── docs/                    # Documentation générée
+│   ├── prd.json            # Product Requirements Document
+│   ├── architecture.json   # Architecture technique
+│   └── stories/            # User stories
+├── src/                     # Code source
+{{#if HAS_TESTS}}
+├── tests/                   # Tests
+{{/if}}
+{{#if HAS_DOCS}}
+├── docs-site/              # Documentation site
+{{/if}}
+└── README.md               # Ce fichier
+```
+
+## 🧪 Tests et Qualité
+
+### Commandes de Test
+
+```bash
+# Exécuter tous les tests
+npm test
+
+# Tests en mode watch
+npm run test:watch
+
+# Linting du code
+npm run lint
+
+# Correction automatique
+npm run lint:fix
+
+# Vérification des types
+npm run typecheck
+```
+
+### Standards de Qualité
+
+{{#if TEST_COVERAGE_TARGET}}
+- **Couverture de test**: Minimum {{TEST_COVERAGE_TARGET}}%
+{{/if}}
+{{#if PERFORMANCE_BUDGETS}}
+- **Budget performance**: {{PERFORMANCE_BUDGETS}}
+{{/if}}
+- **Linting**: ESLint avec configuration {{LINT_CONFIG}}
+- **Formatting**: Prettier
+{{#if SECURITY_CHECKS}}
+- **Sécurité**: Analyse automatique des vulnérabilités
+{{/if}}
+
+## 🔧 Configuration
+
+### Variables d'Environnement
+
+```bash
+{{#each ENV_VARIABLES}}
+{{this.name}}={{this.example}}  # {{this.description}}
+{{/each}}
+```
+
+### Configuration BMAD Studio
+
+La configuration se trouve dans `.bmad-core/core-config.yaml`. Les principales sections:
+
+- **agents**: Configuration des agents disponibles
+- **workflows**: Workflows activés et leur configuration
+- **mcp**: Intégration Claude MCP
+- **validation**: Gates de qualité
+- **monitoring**: Métriques et alertes
+
+## 📚 Documentation
+
+{{#if API_DOCS_ENABLED}}
+- [Documentation API](docs/api.md)
+{{/if}}
+- [Guide de Développement](docs/development.md)
+- [Architecture](docs/architecture.json)
+- [PRD](docs/prd.json)
+{{#each CUSTOM_DOCS}}
+- [{{this.title}}]({{this.path}})
+{{/each}}
+
+## 🚀 Déploiement
+
+{{#if DEPLOYMENT_CONFIG}}
+{{DEPLOYMENT_CONFIG}}
+{{else}}
+Instructions de déploiement spécifiques au projet à venir.
+
+```bash
+# Construction
+npm run build
+
+# Déploiement (à configurer)
+npm run deploy
+```
+{{/if}}
+
+## 🤝 Contribution
+
+Ce projet utilise BMAD Studio pour la gestion du développement:
+
+1. **Briefing**: Utilisez `*agent analyst` pour analyser de nouvelles fonctionnalités
+2. **Architecture**: `*agent architect` pour les décisions techniques
+3. **Développement**: `*agent dev` pour l'implémentation
+4. **Tests**: `*agent qa` pour la validation
+5. **Déploiement**: `*agent devops` pour la mise en production
+
+### Workflow de Contribution
+
+1. Créer une story avec `*task create-story`
+2. Analyser avec les agents appropriés
+3. Implémenter en suivant les standards
+4. Valider avec `*task qa-gate`
+5. Merger après validation
+
+## 📄 Licence
+
+{{LICENSE}}
+
+---
+
+**Généré avec BMAD Studio Template** - *Intelligence adaptative pour projets agiles* 🚀
+
+Pour plus d'informations sur BMAD Studio: [Documentation](https://github.com/bmad-studio/template)
