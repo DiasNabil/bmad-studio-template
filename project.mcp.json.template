@@ -1,0 +1,48 @@
+{
+  "version": "1.0.0",
+  "projectName": "bmad-studio-template",
+  "agents": [
+    {
+      "name": "CoreAgent",
+      "type": "primary",
+      "configuration": {
+        "maxConcurrentTasks": 10,
+        "logLevel": "info",
+        "enableMetrics": true
+      }
+    },
+    {
+      "name": "AnalyticsAgent",
+      "type": "secondary",
+      "configuration": {
+        "dataCollectionEnabled": true,
+        "samplingRate": 0.5
+      }
+    }
+  ],
+  "environments": [
+    {
+      "name": "Development",
+      "type": "local",
+      "parameters": {
+        "debugMode": true,
+        "resourceAllocation": {
+          "cpu": "2cores",
+          "memory": "8GB"
+        }
+      }
+    },
+    {
+      "name": "Production",
+      "type": "cloud",
+      "parameters": {
+        "region": "us-east-1",
+        "scalingPolicy": "auto-scaling",
+        "resourceAllocation": {
+          "cpu": "8cores",
+          "memory": "32GB"
+        }
+      }
+    }
+  ]
+}

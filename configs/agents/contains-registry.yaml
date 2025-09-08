@@ -1,0 +1,47 @@
+agents:
+  - id: core-contains-matcher
+    name: Core Contains Agent Matcher
+    matchPatterns:
+      - 'contains'
+      - 'including'
+      - 'with'
+      - 'having'
+    priority: 100
+    tags:
+      - core
+      - fundamental
+      - text-search
+    configuration:
+      caseSensitive: false
+      matchThreshold: 0.5
+
+  - id: advanced-contains-matcher
+    name: Advanced Contains Matcher
+    matchPatterns:
+      - 'strictly contains'
+      - 'exactly includes'
+      - 'matches precisely'
+    priority: 90
+    tags:
+      - advanced
+      - precise
+      - text-search
+    configuration:
+      caseSensitive: true
+      matchThreshold: 0.8
+
+  - id: fuzzy-contains-matcher
+    name: Fuzzy Contains Matcher
+    matchPatterns:
+      - 'approximately contains'
+      - 'similar to'
+      - 'resembles'
+    priority: 80
+    tags:
+      - fuzzy
+      - nlp
+      - approximate-match
+    configuration:
+      caseSensitive: false
+      fuzzyMatchLevel: 0.7
+      allowTypos: true

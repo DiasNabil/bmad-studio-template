@@ -1,34 +1,27 @@
 {
-    "compilerOptions": {
-        "target": "ES2022",
-        "module": "commonjs",
-        "lib": ["ES2022", "DOM"],
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "moduleResolution": "node",
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "noEmit": true,
-        "baseUrl": ".",
-        "paths": {
-            "@lib/*": ["lib/*"],
-            "@core/*": ["lib/core/*"],
-            "@utils/*": ["lib/utils/*"]
-        },
-        "rootDir": ".",
-        "outDir": "./dist",
-        "declaration": true,
-        "sourceMap": true
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lib/*": ["lib/*"],
+      "@core/*": ["lib/core/*"],
+      "@utils/*": ["lib/utils/*"]
     },
-    "include": [
-        "lib/**/*.ts", 
-        "bin/**/*.ts",
-        "configs/**/*.ts"
-    ],
-    "exclude": [
-        "node_modules",
-        "**/*.spec.ts"
-    ]
+    "rootDir": ".",
+    "outDir": "./dist",
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": ["lib/**/*.ts", "bin/**/*.ts", "configs/**/*.ts", "tests/**/*.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

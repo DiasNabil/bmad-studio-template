@@ -1,0 +1,282 @@
+# BMAD Studio Template - MCP Security Whitelist Configuration
+# Règles de sécurité par agent BMAD avec intégration ErrorHandler
+
+version: '1.0'
+metadata:
+  created: '2025-01-08'
+  description: 'MCP security whitelist with BMAD agent integration'
+  integration:
+    error_handler: 'BMadError'
+    vault_audit: 'enabled'
+    prometheus_metrics: 'enabled'
+
+# Configuration globale de sécurité
+global:
+  # Rate limiting global
+  rate_limits:
+    requests_per_minute: 100
+    burst_limit: 20
+    window_seconds: 60
+
+  # Timeout configuration
+  timeouts:
+    operation_timeout: 30000 # 30 seconds
+    connection_timeout: 10000 # 10 seconds
+
+  # Logging et audit
+  audit:
+    enabled: true
+    sensitive_data_masking: true
+    retention_days: 90
+
+# Règles par agent BMAD
+agents:
+  # Agent orchestrateur principal
+  bmad-orchestrator:
+    permissions:
+      level: 'admin'
+      allowed_operations:
+        - 'agent_coordination'
+        - 'workflow_management'
+        - 'resource_allocation'
+        - 'error_handling'
+      allowed_paths:
+        - '/configs/**'
+        - '/lib/core/**'
+        - '/lib/configurators/**'
+      blocked_paths:
+        - '/configs/security/vault-*'
+        - '/logs/audit/**'
+      domains:
+        allowed:
+          - 'localhost'
+          - '*.bmad-studio.local'
+        blocked:
+          - '*.external.com'
+    rate_limits:
+      requests_per_minute: 200
+      burst_limit: 50
+
+  # Agent architecte
+  architect:
+    permissions:
+      level: 'high'
+      allowed_operations:
+        - 'system_design'
+        - 'dependency_analysis'
+        - 'code_generation'
+        - 'documentation_creation'
+      allowed_paths:
+        - '/lib/**'
+        - '/docs/**'
+        - '/configs/environments/**'
+      blocked_paths:
+        - '/configs/security/**'
+        - '/configs/mcp/**'
+      file_operations:
+        read: true
+        write: true
+        create: true
+        delete: false
+    rate_limits:
+      requests_per_minute: 150
+      burst_limit: 30
+
+  # Agent développeur
+  dev:
+    permissions:
+      level: 'medium'
+      allowed_operations:
+        - 'code_implementation'
+        - 'testing'
+        - 'debugging'
+        - 'build_processes'
+      allowed_paths:
+        - '/lib/**'
+        - '/tests/**'
+        - '/bin/**'
+      blocked_paths:
+        - '/configs/**'
+        - '/logs/**'
+      file_operations:
+        read: true
+        write: true
+        create: true
+        delete: true
+    rate_limits:
+      requests_per_minute: 100
+      burst_limit: 25
+
+  # Agent QA
+  qa:
+    permissions:
+      level: 'medium'
+      allowed_operations:
+        - 'test_execution'
+        - 'quality_analysis'
+        - 'validation'
+        - 'reporting'
+      allowed_paths:
+        - '/tests/**'
+        - '/lib/**'
+        - '/docs/testing/**'
+      blocked_paths:
+        - '/configs/security/**'
+        - '/logs/audit/**'
+      file_operations:
+        read: true
+        write: true
+        create: true
+        delete: false
+    rate_limits:
+      requests_per_minute: 80
+      burst_limit: 20
+
+  # Agent analyste
+  analyst:
+    permissions:
+      level: 'low'
+      allowed_operations:
+        - 'data_analysis'
+        - 'reporting'
+        - 'metrics_collection'
+        - 'performance_monitoring'
+      allowed_paths:
+        - '/logs/**'
+        - '/docs/**'
+        - '/lib/analyzers/**'
+      blocked_paths:
+        - '/configs/security/**'
+        - '/logs/audit/**'
+      file_operations:
+        read: true
+        write: false
+        create: false
+        delete: false
+    rate_limits:
+      requests_per_minute: 50
+      burst_limit: 15
+
+  # Agents spécialisés marketplace
+  marketplace-expert:
+    permissions:
+      level: 'high'
+      allowed_operations:
+        - 'marketplace_logic'
+        - 'payment_integration'
+        - 'seller_management'
+        - 'product_catalog'
+      allowed_paths:
+        - '/lib/marketplace/**'
+        - '/configs/environments/**'
+        - '/docs/marketplace/**'
+      blocked_paths:
+        - '/configs/security/**'
+        - '/logs/audit/**'
+      domains:
+        allowed:
+          - '*.payment-provider.com'
+          - '*.marketplace-api.com'
+        blocked:
+          - '*.suspicious.com'
+    rate_limits:
+      requests_per_minute: 120
+      burst_limit: 35
+
+  # Agent sécurité
+  security-architect:
+    permissions:
+      level: 'admin'
+      allowed_operations:
+        - 'security_analysis'
+        - 'vulnerability_scanning'
+        - 'compliance_checking'
+        - 'audit_review'
+      allowed_paths:
+        - '/configs/security/**'
+        - '/logs/audit/**'
+        - '/lib/validators/**'
+      blocked_paths: []
+      file_operations:
+        read: true
+        write: true
+        create: true
+        delete: false
+    rate_limits:
+      requests_per_minute: 80
+      burst_limit: 20
+
+# Commandes spécifiques bloquées/autorisées
+commands:
+  # Commandes système critiques bloquées
+  blocked:
+    - 'rm -rf'
+    - 'chmod 777'
+    - 'chown'
+    - 'su'
+    - 'sudo'
+    - 'passwd'
+    - 'netcat'
+    - 'curl'
+    - 'wget'
+
+  # Commandes autorisées avec restrictions
+  restricted:
+    - command: 'git'
+      allowed_args: ['status', 'log', 'diff', 'add', 'commit']
+      blocked_args: ['push', 'pull', 'clone', 'remote']
+    - command: 'npm'
+      allowed_args: ['install', 'test', 'build', 'start']
+      blocked_args: ['publish', 'adduser']
+    - command: 'docker'
+      allowed_args: ['ps', 'logs', 'inspect']
+      blocked_args: ['run', 'exec', 'rm']
+
+# Intégration avec les systèmes existants
+integrations:
+  # Intégration avec BMadError
+  error_handling:
+    enabled: true
+    error_codes:
+      WHITELIST_VIOLATION: 'MCP_WHITELIST_001'
+      RATE_LIMIT_EXCEEDED: 'MCP_WHITELIST_002'
+      UNAUTHORIZED_PATH: 'MCP_WHITELIST_003'
+      BLOCKED_COMMAND: 'MCP_WHITELIST_004'
+    severity_mapping:
+      permission_denied: 'HIGH'
+      rate_limit: 'MEDIUM'
+      path_violation: 'HIGH'
+      command_blocked: 'CRITICAL'
+
+  # Intégration avec Vault audit
+  vault_audit:
+    enabled: true
+    audit_path: '/var/log/vault/mcp-audit.log'
+    include_context: true
+
+  # Métriques Prometheus
+  prometheus:
+    enabled: true
+    metrics:
+      - 'mcp_requests_total'
+      - 'mcp_blocked_requests_total'
+      - 'mcp_rate_limit_exceeded_total'
+      - 'mcp_operation_duration_seconds'
+
+# Environnements spécifiques
+environments:
+  development:
+    relaxed_mode: true
+    rate_limits_multiplier: 2.0
+    additional_allowed_domains:
+      - '*.dev.local'
+
+  staging:
+    relaxed_mode: false
+    rate_limits_multiplier: 1.5
+
+  production:
+    relaxed_mode: false
+    rate_limits_multiplier: 0.8
+    strict_validation: true
+    enhanced_logging: true

@@ -1,0 +1,868 @@
+# BMAD Studio Template - Configuration Unifiée
+# Version: 3.0.0
+# Description: Configuration centralisée pour le template BMAD Studio avec intégration complète
+
+version: '3.0.0'
+created: '2025-09-08'
+last_updated: '2025-09-08'
+
+# ===== MÉTADONNÉES PROJET =====
+project:
+  name: 'bmad-studio-template'
+  description: 'BMAD Studio Development Template with DevOps Infrastructure'
+  type: 'template'
+  category: 'devops-infrastructure'
+  maintainer: 'BMAD Studio DevOps Team'
+
+  # Configuration projet
+  security_level: 'enterprise'
+  compliance: ['GDPR', 'CCPA', 'OWASP', 'CIS']
+
+  # Version et compatibilité
+  config_version: '3.0.0'
+  database_config_version: '1.0.0'
+  mcp_security_version: '1.0'
+
+  # Repository et CI/CD
+  repository:
+    type: 'git'
+    url: 'git+https://github.com/DiasNabil/bmad-studio-template.git'
+
+  # Intégrations
+  integrations:
+    github:
+      enabled: true
+      workflows: ['.github/workflows/ci-cd.yml']
+    docker:
+      enabled: true
+      registry: 'ecr'
+    terraform:
+      enabled: true
+      state_backend: 's3'
+    kubernetes:
+      enabled: true
+      namespace: 'bmad-studio'
+
+# ===== CONFIGURATION SÉCURITÉ INTÉGRÉE =====
+security:
+  # MCP Security Whitelist intégré
+  mcp:
+    version: '1.0'
+    enabled: true
+
+    # Configuration globale de sécurité
+    global:
+      rate_limits:
+        requests_per_minute: 100
+        burst_limit: 20
+        window_seconds: 60
+
+      timeouts:
+        operation_timeout: 30000 # 30 seconds
+        connection_timeout: 10000 # 10 seconds
+
+      audit:
+        enabled: true
+        sensitive_data_masking: true
+        retention_days: 90
+
+    # Commandes système critiques bloquées
+    blocked_commands:
+      - 'rm -rf'
+      - 'chmod 777'
+      - 'chown'
+      - 'su'
+      - 'sudo'
+      - 'passwd'
+      - 'netcat'
+      - 'curl'
+      - 'wget'
+
+    # Commandes restreintes avec arguments autorisés
+    restricted_commands:
+      git:
+        allowed_args: ['status', 'log', 'diff', 'add', 'commit']
+        blocked_args: ['push', 'pull', 'clone', 'remote']
+      npm:
+        allowed_args: ['install', 'test', 'build', 'start']
+        blocked_args: ['publish', 'adduser']
+      docker:
+        allowed_args: ['ps', 'logs', 'inspect']
+        blocked_args: ['run', 'exec', 'rm']
+
+  # Configuration secrets et chiffrement
+  secrets_management:
+    provider: 'vault'
+    encryption: 'AES-256'
+    rotation_enabled: true
+    rotation_interval: '30d'
+    config_path: 'configs/security/vault-config.hcl'
+    init_script: 'configs/security/vault-init.sh'
+
+  # Scanner de vulnérabilités
+  vulnerability_scanning:
+    enabled: true
+    provider: 'snyk'
+    schedule: 'daily'
+    fail_on_critical: true
+    scan_script: 'configs/security/security-scan.sh'
+
+  # Vérifications de conformité
+  compliance_checks:
+    enabled: true
+    frameworks: ['OWASP', 'CIS', 'GDPR', 'CCPA']
+
+# ===== CONFIGURATION AGENTS BMAD =====
+agents:
+  # Configuration générale des agents
+  validation_required: true
+  fallback_enabled: true
+  parallel_execution: true
+  auto_activation: true
+  default_agent: 'bmad-orchestrator'
+
+  # Configuration du fallback
+  fallback_mechanism:
+    enabled: true
+    strategy_priority: ['expertise', 'availability', 'performance']
+
+  # Cache et performance
+  cache:
+    enabled: true
+    lifetime: 3600000 # 1 hour
+
+  performance_threshold:
+    simple: 0.7
+    complex: 0.5
+    very_complex: 0.3
+
+  # Agents spécialisés BMAD
+  specialized_agents:
+    # Agents principaux
+    - name: 'bmad-orchestrator'
+      enabled: true
+      priority: 'critical'
+      permissions:
+        level: 'admin'
+        allowed_operations:
+          - 'agent_coordination'
+          - 'workflow_management'
+          - 'resource_allocation'
+          - 'error_handling'
+        allowed_paths:
+          - '/configs/**'
+          - '/lib/core/**'
+          - '/lib/configurators/**'
+        blocked_paths:
+          - '/configs/security/vault-*'
+          - '/logs/audit/**'
+        rate_limits:
+          requests_per_minute: 200
+          burst_limit: 50
+
+    - name: 'bmad-architect'
+      enabled: true
+      priority: 'high'
+      permissions:
+        level: 'high'
+        allowed_operations:
+          - 'system_design'
+          - 'dependency_analysis'
+          - 'code_generation'
+          - 'documentation_creation'
+        allowed_paths:
+          - '/lib/**'
+          - '/docs/**'
+          - '/configs/environments/**'
+        blocked_paths:
+          - '/configs/security/**'
+          - '/configs/mcp/**'
+        file_operations:
+          read: true
+          write: true
+          create: true
+          delete: false
+        rate_limits:
+          requests_per_minute: 150
+          burst_limit: 30
+
+    - name: 'bmad-dev'
+      enabled: true
+      priority: 'medium'
+      permissions:
+        level: 'medium'
+        allowed_operations:
+          - 'code_implementation'
+          - 'testing'
+          - 'debugging'
+          - 'build_processes'
+        allowed_paths:
+          - '/lib/**'
+          - '/tests/**'
+          - '/bin/**'
+        blocked_paths:
+          - '/configs/**'
+          - '/logs/**'
+        file_operations:
+          read: true
+          write: true
+          create: true
+          delete: true
+        rate_limits:
+          requests_per_minute: 100
+          burst_limit: 25
+
+    - name: 'bmad-qa'
+      enabled: true
+      priority: 'medium'
+      permissions:
+        level: 'medium'
+        allowed_operations:
+          - 'test_execution'
+          - 'quality_analysis'
+          - 'validation'
+          - 'reporting'
+        allowed_paths:
+          - '/tests/**'
+          - '/lib/**'
+          - '/docs/testing/**'
+        blocked_paths:
+          - '/configs/security/**'
+          - '/logs/audit/**'
+        file_operations:
+          read: true
+          write: true
+          create: true
+          delete: false
+        rate_limits:
+          requests_per_minute: 80
+          burst_limit: 20
+
+    - name: 'bmad-analyst'
+      enabled: true
+      priority: 'low'
+      permissions:
+        level: 'low'
+        allowed_operations:
+          - 'data_analysis'
+          - 'reporting'
+          - 'metrics_collection'
+          - 'performance_monitoring'
+        allowed_paths:
+          - '/logs/**'
+          - '/docs/**'
+          - '/lib/analyzers/**'
+        blocked_paths:
+          - '/configs/security/**'
+          - '/logs/audit/**'
+        file_operations:
+          read: true
+          write: false
+          create: false
+          delete: false
+        rate_limits:
+          requests_per_minute: 50
+          burst_limit: 15
+
+    - name: 'devops-automator'
+      enabled: true
+      priority: 'high'
+      permissions:
+        level: 'high'
+        allowed_operations:
+          - 'infrastructure_automation'
+          - 'deployment_management'
+          - 'monitoring_setup'
+          - 'scaling_operations'
+        allowed_paths:
+          - '/infra/**'
+          - '/configs/environments/**'
+          - '/scripts/**'
+        rate_limits:
+          requests_per_minute: 120
+          burst_limit: 35
+
+    # Agents spécialisés marketplace
+    - name: 'marketplace-expert'
+      enabled: true
+      priority: 'high'
+      permissions:
+        level: 'high'
+        allowed_operations:
+          - 'marketplace_logic'
+          - 'payment_integration'
+          - 'seller_management'
+          - 'product_catalog'
+        allowed_paths:
+          - '/lib/marketplace/**'
+          - '/configs/environments/**'
+          - '/docs/marketplace/**'
+        blocked_paths:
+          - '/configs/security/**'
+          - '/logs/audit/**'
+        domains:
+          allowed:
+            - '*.payment-provider.com'
+            - '*.marketplace-api.com'
+          blocked:
+            - '*.suspicious.com'
+        rate_limits:
+          requests_per_minute: 120
+          burst_limit: 35
+
+    - name: 'security-architect'
+      enabled: true
+      priority: 'critical'
+      permissions:
+        level: 'admin'
+        allowed_operations:
+          - 'security_analysis'
+          - 'vulnerability_scanning'
+          - 'compliance_checking'
+          - 'audit_review'
+        allowed_paths:
+          - '/configs/security/**'
+          - '/logs/audit/**'
+          - '/lib/validators/**'
+        rate_limits:
+          requests_per_minute: 80
+          burst_limit: 20
+
+  # Registre des agents de contenu (contains-registry intégré)
+  content_agents:
+    - id: 'core-contains-matcher'
+      name: 'Core Contains Agent Matcher'
+      match_patterns:
+        - 'contains'
+        - 'including'
+        - 'with'
+        - 'having'
+      priority: 100
+      tags:
+        - 'core'
+        - 'fundamental'
+        - 'text-search'
+      configuration:
+        case_sensitive: false
+        match_threshold: 0.5
+
+    - id: 'advanced-contains-matcher'
+      name: 'Advanced Contains Matcher'
+      match_patterns:
+        - 'strictly contains'
+        - 'exactly includes'
+        - 'matches precisely'
+      priority: 90
+      tags:
+        - 'advanced'
+        - 'precise'
+        - 'text-search'
+      configuration:
+        case_sensitive: true
+        match_threshold: 0.8
+
+    - id: 'fuzzy-contains-matcher'
+      name: 'Fuzzy Contains Matcher'
+      match_patterns:
+        - 'approximately contains'
+        - 'similar to'
+        - 'resembles'
+      priority: 80
+      tags:
+        - 'fuzzy'
+        - 'nlp'
+        - 'approximate-match'
+      configuration:
+        case_sensitive: false
+        fuzzy_match_level: 0.7
+        allow_typos: true
+
+# ===== MONITORING UNIFIÉ =====
+monitoring:
+  # Configuration Prometheus
+  metrics:
+    provider: 'prometheus'
+    retention: '30d'
+    scrape_interval: '15s'
+
+    # Exporters de base
+    exporters:
+      postgresql:
+        enabled: true
+        port: 9187
+        queries_config: 'configs/databases/monitoring/postgres-queries.yaml'
+        include_databases: ['bmad_studio_db']
+      redis:
+        enabled: true
+        port: 9121
+        check_keys: true
+        system_metrics: true
+        key_groups: ['session:*', 'cache:*', 'queue:*']
+      node:
+        enabled: true
+        port: 9100
+      blackbox:
+        enabled: true
+        port: 9115
+        config: 'configs/databases/monitoring/blackbox-config.yml'
+        probes:
+          - name: 'postgresql-health'
+            module: 'postgresql_connect'
+            targets: ['${POSTGRES_HOST}:${POSTGRES_PORT}']
+          - name: 'redis-health'
+            module: 'redis_connect'
+            targets: ['${REDIS_HOST}:${REDIS_PORT}']
+
+    # Métriques MCP intégrées
+    mcp_metrics:
+      enabled: true
+      metrics:
+        - 'mcp_requests_total'
+        - 'mcp_blocked_requests_total'
+        - 'mcp_rate_limit_exceeded_total'
+        - 'mcp_operation_duration_seconds'
+        - 'bmad_agent_operations_total'
+        - 'bmad_agent_errors_total'
+        - 'bmad_config_cache_hits'
+        - 'bmad_config_cache_misses'
+
+  # Configuration Grafana
+  dashboards:
+    provider: 'grafana'
+    auto_provision: true
+    database_dashboard: 'configs/databases/monitoring/grafana-dashboard.json'
+    custom_dashboards:
+      - name: 'Database Performance'
+        path: 'configs/databases/monitoring/performance-dashboard.json'
+      - name: 'Database Security'
+        path: 'configs/databases/monitoring/security-dashboard.json'
+      - name: 'BMAD Agents Performance'
+        path: 'configs/monitoring/bmad-agents-dashboard.json'
+      - name: 'MCP Security Overview'
+        path: 'configs/monitoring/mcp-security-dashboard.json'
+
+  # Configuration des alertes
+  alerting:
+    enabled: true
+    channels: ['slack', 'email']
+    severity_levels: ['critical', 'warning', 'info']
+
+    rules:
+      # Règles base de données
+      database:
+        - name: 'PostgreSQL Down'
+          condition: 'pg_up == 0'
+          severity: 'critical'
+          duration: '1m'
+        - name: 'High Connection Count'
+          condition: 'pg_stat_activity_count > 150'
+          severity: 'warning'
+          duration: '5m'
+        - name: 'Slow Query Alert'
+          condition: 'pg_stat_statements_mean_time_seconds > 5'
+          severity: 'warning'
+          duration: '2m'
+        - name: 'Redis Down'
+          condition: 'redis_up == 0'
+          severity: 'critical'
+          duration: '1m'
+        - name: 'Redis Memory High'
+          condition: '(redis_memory_used_bytes / redis_config_maxmemory) > 0.9'
+          severity: 'warning'
+          duration: '5m'
+        - name: 'Database Disk Usage High'
+          condition: '(node_filesystem_avail_bytes / node_filesystem_size_bytes) < 0.1'
+          severity: 'critical'
+          duration: '2m'
+
+      # Règles agents BMAD
+      bmad_agents:
+        - name: 'Agent Response Time High'
+          condition: 'bmad_agent_operation_duration > 30'
+          severity: 'warning'
+          duration: '2m'
+        - name: 'Agent Error Rate High'
+          condition: 'rate(bmad_agent_errors_total[5m]) > 0.1'
+          severity: 'warning'
+          duration: '5m'
+        - name: 'Agent Orchestrator Down'
+          condition: 'bmad_orchestrator_up == 0'
+          severity: 'critical'
+          duration: '1m'
+
+      # Règles sécurité MCP
+      mcp_security:
+        - name: 'MCP Rate Limit Exceeded'
+          condition: 'rate(mcp_rate_limit_exceeded_total[1m]) > 10'
+          severity: 'warning'
+          duration: '1m'
+        - name: 'MCP Blocked Requests High'
+          condition: 'rate(mcp_blocked_requests_total[5m]) > 5'
+          severity: 'high'
+          duration: '2m'
+        - name: 'MCP Security Violation'
+          condition: 'rate(mcp_security_violations_total[1m]) > 0'
+          severity: 'critical'
+          duration: '0s'
+
+  # Configuration des logs
+  logging:
+    provider: 'elk'
+    retention: '90d'
+    structured_logs: true
+
+    # Logs base de données
+    database_logs:
+      postgresql:
+        enabled: true
+        log_groups: ['/aws/rds/instance/bmad-studio-postgresql/postgresql']
+        slow_query_logging: true
+        connection_logging: true
+      redis:
+        enabled: true
+        log_groups: ['/aws/elasticache/bmad-studio-redis']
+        slow_log_enabled: true
+
+    # Logs agents BMAD
+    bmad_logs:
+      enabled: true
+      log_level: 'INFO'
+      structured_format: true
+      include_context: true
+      retention_days: 90
+
+    # Logs sécurité MCP
+    mcp_logs:
+      enabled: true
+      audit_logging: true
+      security_events: true
+      retention_days: 365 # Conformité audit plus longue
+
+    # Agrégation des logs
+    log_aggregation:
+      fluentd:
+        enabled: true
+        config: 'configs/databases/monitoring/fluentd.conf'
+      logstash:
+        enabled: true
+        config: 'configs/databases/monitoring/logstash.conf'
+
+# ===== ENVIRONNEMENTS =====
+environments:
+  development:
+    enabled: true
+    auto_deploy: true
+    monitoring: 'basic'
+    security: 'standard'
+
+    # Configuration MCP relaxée pour dev
+    mcp:
+      relaxed_mode: true
+      rate_limits_multiplier: 2.0
+      additional_allowed_domains:
+        - '*.dev.local'
+        - 'localhost:*'
+
+    # Configuration agents pour dev
+    agents:
+      debug_mode: true
+      extended_logging: true
+      cache_disabled: true
+
+  staging:
+    enabled: true
+    auto_deploy: false
+    monitoring: 'advanced'
+    security: 'enhanced'
+    approval_required: true
+
+    # Configuration MCP pour staging
+    mcp:
+      relaxed_mode: false
+      rate_limits_multiplier: 1.5
+
+    # Configuration agents pour staging
+    agents:
+      debug_mode: false
+      performance_monitoring: true
+      cache_enabled: true
+
+  production:
+    enabled: true
+    auto_deploy: false
+    monitoring: 'full'
+    security: 'maximum'
+    approval_required: true
+    rollback_enabled: true
+
+    # Configuration MCP stricte pour production
+    mcp:
+      relaxed_mode: false
+      rate_limits_multiplier: 0.8
+      strict_validation: true
+      enhanced_logging: true
+      audit_mode: 'full'
+
+    # Configuration agents pour production
+    agents:
+      debug_mode: false
+      performance_optimized: true
+      cache_enabled: true
+      fallback_mandatory: true
+      error_recovery: true
+
+# ===== HOOKS CLAUDE CODE =====
+hooks:
+  enabled: true
+  pre_commit:
+    - 'lint'
+    - 'security-scan'
+    - 'config-validation'
+
+  pre_push:
+    - 'test'
+    - 'compliance-check'
+
+  post_deploy:
+    - 'health-check'
+    - 'metrics-collection'
+
+# ===== VALIDATION ET QUALITY GATES =====
+validation:
+  # Configuration de validation
+  enabled: true
+  fail_fast: true
+
+  # Rules de validation
+  rules:
+    config_validation:
+      enabled: true
+      schema_path: 'schemas/bmad-config-schema.json'
+
+    security_validation:
+      enabled: true
+      fail_on_critical: true
+      scan_dependencies: true
+
+    agent_validation:
+      enabled: true
+      check_permissions: true
+      validate_paths: true
+      verify_dependencies: true
+
+    performance_validation:
+      enabled: true
+      response_time_threshold: '200ms'
+      memory_usage_threshold: '85%'
+
+  # Quality gates
+  quality_gates:
+    code_coverage:
+      minimum: 85
+      target: 90
+
+    security_scan:
+      required: true
+      blocking: true
+
+    performance_tests:
+      enabled: true
+      thresholds:
+        response_time: '200ms'
+        throughput: '1000rps'
+
+    compliance_checks:
+      required: true
+      frameworks: ['GDPR', 'CCPA', 'OWASP']
+
+# ===== INFRASTRUCTURE ET CI/CD =====
+infrastructure:
+  cloud_provider: 'aws'
+  deployment_strategy: 'blue-green'
+
+  auto_scaling:
+    enabled: true
+    min_instances: 2
+    max_instances: 10
+    target_cpu: 70
+
+  load_balancer:
+    enabled: true
+    type: 'application'
+    health_check_interval: '30s'
+
+  # Configuration base de données intégrée
+  databases:
+    postgresql:
+      primary:
+        type: 'postgresql'
+        version: '14.9'
+        instance_class: 'db.t3.medium'
+        allocated_storage: 100
+        max_allocated_storage: 1000
+        multi_az: true
+        backup_enabled: true
+        backup_schedule: '0 2 * * *'
+        backup_retention: 30
+        performance_insights: true
+        encryption_enabled: true
+        ssl_required: true
+        monitoring_enabled: true
+        slow_query_threshold: 5000
+
+      replica:
+        enabled: true
+        instance_class: 'db.t3.small'
+        read_only: true
+        lag_threshold: 30
+
+      connection_pooling:
+        enabled: true
+        max_connections: 200
+        pool_size: 20
+        pool_timeout: 10000
+
+      maintenance:
+        auto_vacuum: true
+        auto_analyze: true
+        reindex_schedule: '0 3 * * 0'
+        cleanup_schedule: '0 4 * * *'
+
+    redis:
+      cluster:
+        type: 'redis'
+        version: '7.0'
+        node_type: 'cache.t3.medium'
+        num_cache_nodes: 3
+        multi_az: true
+        persistence: true
+        backup_enabled: true
+        backup_retention: 7
+        encryption_at_rest: true
+        encryption_in_transit: true
+        auth_token_enabled: true
+
+      sentinel:
+        enabled: true
+        instances: 3
+        failover_timeout: 180000
+
+      memory_policy: 'allkeys-lru'
+      max_memory: '2gb'
+      eviction_policy: 'allkeys-lru'
+
+    backup_strategy:
+      full_backup_schedule: '0 2 * * 0'
+      incremental_backup_schedule: '0 3 * * 1-6'
+      retention_policy:
+        full_backups: 30
+        incremental_backups: 7
+        wal_retention: 7
+      destinations:
+        - type: 's3'
+          bucket: 'bmad-studio-db-backups'
+          encryption: 'AES256'
+        - type: 'local'
+          path: '/var/backups/postgresql'
+          retention_days: 14
+      verification:
+        enabled: true
+        schedule: '0 6 * * 1'
+
+# ===== CI/CD INTÉGRÉ =====
+ci_cd:
+  pipeline:
+    stages: ['lint', 'test', 'security-scan', 'build', 'deploy']
+    parallel_jobs: 4
+
+  deployment:
+    strategies: ['rolling', 'blue-green', 'canary']
+    approval_gates: ['staging', 'production']
+
+  notifications:
+    enabled: true
+    channels: ['slack', 'email']
+
+  # Intégration avec agents BMAD
+  bmad_integration:
+    enabled: true
+    agent_validation: true
+    config_sync: true
+    automated_rollback: true
+
+# ===== INTÉGRATIONS SYSTÈME =====
+integrations:
+  # Intégration ErrorHandler
+  error_handling:
+    enabled: true
+    handler_class: 'BMadError'
+
+    # Codes d'erreur MCP intégrés
+    error_codes:
+      WHITELIST_VIOLATION: 'MCP_WHITELIST_001'
+      RATE_LIMIT_EXCEEDED: 'MCP_WHITELIST_002'
+      UNAUTHORIZED_PATH: 'MCP_WHITELIST_003'
+      BLOCKED_COMMAND: 'MCP_WHITELIST_004'
+      AGENT_CONFIGURATION_ERROR: 'BMAD_AGENT_001'
+      AGENT_DEPENDENCY_ERROR: 'BMAD_AGENT_002'
+      WORKFLOW_EXECUTION_ERROR: 'BMAD_WORKFLOW_001'
+      VALIDATION_FAILURE: 'BMAD_VALIDATION_001'
+
+    # Mapping de sévérité intégré
+    severity_mapping:
+      permission_denied: 'HIGH'
+      rate_limit: 'MEDIUM'
+      path_violation: 'HIGH'
+      command_blocked: 'CRITICAL'
+      agent_error: 'HIGH'
+      workflow_error: 'MEDIUM'
+      validation_error: 'MEDIUM'
+
+  # Intégration Vault audit
+  vault_audit:
+    enabled: true
+    audit_path: '/var/log/vault/mcp-audit.log'
+    include_context: true
+    integration_config: 'configs/security/vault-config.hcl'
+
+# ===== FEATURES ET CAPACITÉS =====
+features:
+  hot_reload: true
+  debug_mode: false
+  telemetry: true
+  analytics: true
+  feature_flags: true
+
+  # Features agents BMAD
+  agent_features:
+    dynamic_configuration: true
+    auto_scaling: true
+    intelligent_routing: true
+    context_awareness: true
+    learning_enabled: true
+
+  # Features sécurité
+  security_features:
+    runtime_protection: true
+    anomaly_detection: true
+    threat_intelligence: true
+    automated_response: true
+
+# ===== MÉTADONNÉES DE MIGRATION =====
+migration:
+  version: '1.0'
+  created: '2025-09-08'
+  source_files:
+    - '.bmad-core/core-config.yaml'
+    - 'configs/mcp/whitelist.yaml'
+    - 'configs/agents/contains-registry.yaml'
+
+  compatibility:
+    DynamicAgentConfigurator: true
+    MCPSecurityManager: true
+    ErrorHandler: true
+    PrometheusMetrics: true
+
+  validation_status: 'pending'
+  migration_tests: 'required'
+  rollback_plan: 'manual'

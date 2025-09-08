@@ -1,0 +1,62 @@
+name: MCP Schema Validation
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  schema-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate MCP Schema
+        run: |
+          npx ts-node lib/validators/mcpSchemaValidator.ts validate-project-schema
+
+      - name: Prometheus Metrics Export
+        if: success()
+        run: |
+          # Optional: Export validation metrics to Prometheus
+          echo "bmad_schema_validation_success 1" > metrics.txt
+
+      - name: Upload Validation Metrics
+        uses: actions/upload-artifact@v3
+        with:
+          name: schema-validation-metrics
+          path: metrics.txt
+
+      - name: Audit Logging
+        run: |
+          # Generate audit log for Vault compatibility
+          echo "$(date +%Y-%m-%dT%H:%M:%S) - MCP Schema Validation Successful" >> audit.log
+
+      - name: Upload Audit Log
+        uses: actions/upload-artifact@v3
+        with:
+          name: schema-validation-audit
+          path: audit.log
+
+      - name: Failure Notification
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: MCP Schema Validation Failed
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
